@@ -1,0 +1,26 @@
+﻿//各種宣言(ヘッダー）
+{
+module Lexer
+//tokenの型を拾うために必要
+open Parser
+let lexeme = Lexing.LexBuffer<_>.LexemeString
+}
+
+//数字・空白・改行をそれぞれ定義
+let intNum     = '-'? ['0'-'9']+
+let whitespace = ' ' | '\t'
+let newline    = '\n' | '\r' '\n'
+
+//字句定義。{}の中のマッチした内容に応じてトークンが返ってくる
+rule token = parse
+    | intNum     { INT (lexeme lexbuf |> int) }
+    | '+'        { PLUS }
+    | '-'        { MINUS }
+    | '*'        { TIMES }
+    | '/'        { DIVIDE }
+    | '('        { LPAREN }
+    | ')'        { RPAREN }
+    | whitespace { token lexbuf } //再帰呼び出しでスペースは無視
+    | newline    { lexbuf.EndPos <- lexbuf.EndPos.NextLine; token lexbuf }
+    | eof        { EOF }
+    | _          { failwithf "unrecognized input: '%s'" <| lexeme lexbuf }
